@@ -1,0 +1,15 @@
+gocw
+====
+download https://ocw.sharif.edu/ coureses.
+
+Dependencies
+------------
+go.
+
+Build
+-----
+run
+  git clone https://github.com/retpoison/gocw
+  cd gocw
+  go build
+  ./gocw
