@@ -1,10 +1,12 @@
 gocw
 ====
-download https://ocw.sharif.edu/ coureses.
+A tool for downloading courses from https://ocw.sharif.edu/ .
+
 
 Dependencies
 ------------
 go.
+
 
 Build
 -----
