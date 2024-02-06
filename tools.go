@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/juju/ratelimit"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -82,12 +83,15 @@ func downloadCourses(courses []ocw.Course) {
 			return
 		}
 
+		var speedLimit int64 = getSpeedLimit() * 1024
+
 		for _, v := range c.Sessions {
 			fmt.Println("downloading", v.Sort, v.Title)
 			fmt.Println("ocw.sharif.edu/" + v.Link)
 
 			err = downloadFile("http://ocw.sharif.edu"+v.Link,
-				foldername+"/"+v.Sort+" - "+v.Title+path.Ext(v.Link))
+				foldername+"/"+v.Sort+" - "+v.Title+path.Ext(v.Link),
+				speedLimit)
 			if err != nil {
 				fmt.Printf("unable to download\n%s\n%s\n%s\n%s", v.Sort, v.Title, v.Link, err)
 			}
@@ -102,7 +106,7 @@ func makeFolder(folderPath string) error {
 	return nil
 }
 
-func downloadFile(url, filepath string) error {
+func downloadFile(url, filepath string, speedLimit int64) error {
 	out, err := os.Create(filepath)
 	if err != nil {
 		return err
@@ -114,16 +118,30 @@ func downloadFile(url, filepath string) error {
 		return err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("bad status: %s", resp.Status)
 	}
 
 	bar := progressbar.DefaultBytes(resp.ContentLength)
-	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
+	if speedLimit == 0 {
+		_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
+	} else {
+		bucket := ratelimit.NewBucketWithRate(float64(speedLimit), speedLimit)
+		_, err = io.Copy(io.MultiWriter(out, bar),
+			ratelimit.Reader(resp.Body, bucket))
+	}
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func getSpeedLimit() int64 {
+	var limit int64 = 0
+	for ok := true; ok; ok = (limit < 0) {
+		fmt.Printf("enter the download speed limit in KB: (0 for default) ")
+		fmt.Scanln(&limit)
+	}
+	return limit
 }
