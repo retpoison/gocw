@@ -8,10 +8,10 @@ import (
 type Course struct {
 	ID       int
 	Title    string
-	Sessions []session
+	Sessions []Session
 }
 
-type session struct {
+type Session struct {
 	Title string
 	Sort  string
 	Link  string
