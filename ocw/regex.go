@@ -27,8 +27,8 @@ func findAllString(re *regexp2.Regexp, s string) []string {
 	return matches
 }
 
-func extractSessions(data string) ([]session, error) {
-	var sessions []session = []session{}
+func extractSessions(data string) ([]Session, error) {
+	var sessions []Session = []Session{}
 
 	var matchedLink []string = findAllString(lRe, data)
 
@@ -37,7 +37,7 @@ func extractSessions(data string) ([]session, error) {
 		title, sort = getTitleSort(tRe, sRe, link, data)
 		title, _ = toString(title)
 		link = strings.Replace(link, "\\", "", -1)
-		var v session = session{Title: title, Sort: sort, Link: link}
+		var v Session = Session{Title: title, Sort: sort, Link: link}
 		sessions = append(sessions, v)
 	}
 
@@ -55,11 +55,21 @@ func getTitleSort(tRe, sRe *regexp2.Regexp, link, data string) (string, string) 
 
 func getTitle(data string) string {
 	var title []string = findAllString(tRe, data)
-	return title[0]
+	if len(title) > 0 {
+		return title[0]
+	}
+	return ""
 }
 
 func getTeacher(data string) string {
 	var firstName []string = findAllString(fnRe, data)
 	var lastName []string = findAllString(lnRe, data)
-	return fmt.Sprintf("%s %s", firstName[0], lastName[0])
+	if len(firstName) > 0 && len(lastName) > 0 {
+		return fmt.Sprintf("%s %s", firstName[0], lastName[0])
+	} else if len(firstName) > 0 {
+		return firstName[0]
+	} else if len(lastName) > 0 {
+		return lastName[0]
+	}
+	return ""
 }

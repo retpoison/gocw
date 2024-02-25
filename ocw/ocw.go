@@ -8,10 +8,10 @@ import (
 type Course struct {
 	ID       int
 	Title    string
-	Sessions []session
+	Sessions []Session
 }
 
-type session struct {
+type Session struct {
 	Title string
 	Sort  string
 	Link  string
@@ -36,15 +36,13 @@ func (c *Course) IsCourseExists() bool {
 }
 
 func (c *Course) GetFolderName() (string, error) {
-	data, err := getCourseData(c.ID)
+	data, err := getTeacherData(c.ID)
 	if err != nil {
 		return "", err
 	}
-
-	var title, teacher string = getTitle(data), getTeacher(data)
-	title, _ = toString(title)
+	var teacher string = getTeacher(data)
 	teacher, _ = toString(teacher)
-	return fmt.Sprintf("%s - %s", title, teacher), nil
+	return fmt.Sprintf("%s - %s", c.Title, teacher), nil
 }
 
 func (c *Course) InitSessions() error {
