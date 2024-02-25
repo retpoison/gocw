@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"gocw/ocw"
 	"io"
@@ -131,6 +132,10 @@ func makeFolder(folderPath string) error {
 }
 
 func downloadFile(url, filepath string, speedLimit int64) error {
+	fileSize, err := getFileSize(filepath)
+	if !(errors.Is(err, os.ErrNotExist)) && err != nil {
+		return err
+	}
 	out, err := os.Create(filepath)
 	if err != nil {
 		return err
@@ -146,6 +151,12 @@ func downloadFile(url, filepath string, speedLimit int64) error {
 		return fmt.Errorf("bad status: %s", resp.Status)
 	}
 
+	size, _ := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	if fileSize == size {
+		fmt.Println("file already exist.")
+		return nil
+	}
+
 	bar := progressbar.DefaultBytes(resp.ContentLength)
 	if speedLimit == 0 {
 		_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
@@ -157,7 +168,6 @@ func downloadFile(url, filepath string, speedLimit int64) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -168,4 +178,14 @@ func getSpeedLimit() int64 {
 		fmt.Scanln(&limit)
 	}
 	return limit
+}
+
+func getFileSize(filepath string) (int64, error) {
+	var fileSize int64 = 0
+	f, err := os.Stat(filepath)
+	if err != nil {
+		return fileSize, err
+	}
+	fileSize = f.Size()
+	return fileSize, nil
 }
