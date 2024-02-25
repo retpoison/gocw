@@ -61,6 +61,8 @@ func getDownloadConfirm() string {
 }
 
 func downloadCourses(courses []ocw.Course) {
+	var unableToDownload = []ocw.Session{}
+
 	for _, c := range courses {
 		foldername, err := c.GetFolderName()
 		if err != nil {
@@ -84,19 +86,41 @@ func downloadCourses(courses []ocw.Course) {
 		}
 
 		var speedLimit int64 = getSpeedLimit() * 1024
-
-		for _, v := range c.Sessions {
-			fmt.Println("downloading", v.Sort, v.Title)
-			fmt.Println("ocw.sharif.edu/" + v.Link)
-
-			err = downloadFile("http://ocw.sharif.edu"+v.Link,
-				foldername+"/"+v.Sort+" - "+v.Title+path.Ext(v.Link),
-				speedLimit)
-			if err != nil {
-				fmt.Printf("unable to download\n%s\n%s\n%s\n%s", v.Sort, v.Title, v.Link, err)
-			}
+		unable := downloadSessions(c.Sessions, foldername, speedLimit)
+		if len(unable) > 0 {
+			fmt.Println("\ntrying again to download the files that encountered a problem.")
+		}
+		unable = downloadSessions(unable, foldername, speedLimit)
+		if len(unable) > 0 {
+			unableToDownload = append(unableToDownload, unable...)
 		}
 	}
+
+	if len(unableToDownload) > 0 {
+		fmt.Println("a problem occurred when downloading these files:")
+		for _, v := range unableToDownload {
+			fmt.Printf("%s %s\nhttp://ocw.sharif.edu%s\n",
+				v.Sort, v.Title, v.Link)
+		}
+	}
+}
+
+func downloadSessions(sessions []ocw.Session, foldername string, speedLimit int64) []ocw.Session {
+	var unable = []ocw.Session{}
+	for _, v := range sessions {
+		fmt.Println("downloading", v.Sort, v.Title)
+		fmt.Println("http://ocw.sharif.edu" + v.Link)
+
+		err := downloadFile("http://ocw.sharif.edu"+v.Link,
+			foldername+"/"+v.Sort+" - "+v.Title+path.Ext(v.Link),
+			speedLimit)
+		if err != nil {
+			fmt.Printf("\nunable to download\n%s %s\nhttp://ocw.sharif.edu%s\n%s\n",
+				v.Sort, v.Title, v.Link, err)
+			unable = append(unable, v)
+		}
+	}
+	return unable
 }
 
 func makeFolder(folderPath string) error {
