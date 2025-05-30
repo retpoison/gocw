@@ -41,7 +41,7 @@ func request(method, url string, body io.Reader) (string, error) {
 }
 
 func getSessionsData(id int) (string, error) {
-	var url string = "https://ocw.sharif.edu/api/v1/ocw/sessions"
+	var url string = "https://ocw.sharif.ir/api/v1/ocw/sessions"
 	values := map[string]any{
 		"limit":      "None",
 		"order_type": "ASC",
@@ -60,7 +60,7 @@ func getSessionsData(id int) (string, error) {
 }
 
 func getTeacherData(id int) (string, error) {
-	var url string = "https://ocw.sharif.edu/api/v1/ocw/courses/users"
+	var url string = "https://ocw.sharif.ir/api/v1/ocw/courses/users"
 	values := map[string]any{"course_id": id, "role": []string{"teacher"}}
 
 	body, err := getBody(values)
