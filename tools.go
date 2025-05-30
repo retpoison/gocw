@@ -136,11 +136,6 @@ func downloadFile(url, filepath string, speedLimit int64) error {
 	if !(errors.Is(err, os.ErrNotExist)) && err != nil {
 		return err
 	}
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -156,6 +151,12 @@ func downloadFile(url, filepath string, speedLimit int64) error {
 		fmt.Println("file already exist.")
 		return nil
 	}
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
 
 	bar := progressbar.DefaultBytes(resp.ContentLength)
 	if speedLimit == 0 {
