@@ -100,7 +100,7 @@ func downloadCourses(courses []ocw.Course) {
 	if len(unableToDownload) > 0 {
 		fmt.Println("a problem occurred when downloading these files:")
 		for _, v := range unableToDownload {
-			fmt.Printf("%s %s\nhttp://ocw.sharif.edu%s\n",
+			fmt.Printf("%s %s\nhttp://ocw.sharif.ir%s\n",
 				v.Sort, v.Title, v.Link)
 		}
 	}
@@ -110,13 +110,13 @@ func downloadSessions(sessions []ocw.Session, foldername string, speedLimit int6
 	var unable = []ocw.Session{}
 	for _, v := range sessions {
 		fmt.Println("downloading", v.Sort, v.Title)
-		fmt.Println("http://ocw.sharif.edu" + v.Link)
+		fmt.Println("http://ocw.sharif.ir" + v.Link)
 
-		err := downloadFile("http://ocw.sharif.edu"+v.Link,
+		err := downloadFile("http://ocw.sharif.ir"+v.Link,
 			foldername+"/"+v.Sort+" - "+v.Title+path.Ext(v.Link),
 			speedLimit)
 		if err != nil {
-			fmt.Printf("\nunable to download\n%s %s\nhttp://ocw.sharif.edu%s\n%s\n",
+			fmt.Printf("\nunable to download\n%s %s\nhttp://ocw.sharif.ir%s\n%s\n",
 				v.Sort, v.Title, v.Link, err)
 			unable = append(unable, v)
 		}
@@ -136,11 +136,6 @@ func downloadFile(url, filepath string, speedLimit int64) error {
 	if !(errors.Is(err, os.ErrNotExist)) && err != nil {
 		return err
 	}
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -156,6 +151,12 @@ func downloadFile(url, filepath string, speedLimit int64) error {
 		fmt.Println("file already exist.")
 		return nil
 	}
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
 
 	bar := progressbar.DefaultBytes(resp.ContentLength)
 	if speedLimit == 0 {

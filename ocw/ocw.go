@@ -18,7 +18,7 @@ type Session struct {
 }
 
 func (c *Course) IsCourseExists() bool {
-	var url string = "https://ocw.sharif.edu/api/v1/ocw/course/get"
+	var url string = "https://ocw.sharif.ir/api/v1/ocw/course/get"
 	var values map[string]int = map[string]int{"id": c.ID}
 
 	body, err := getBody(values)
